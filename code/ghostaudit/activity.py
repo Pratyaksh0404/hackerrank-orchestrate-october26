@@ -37,7 +37,10 @@ ACCOUNT_WINDOW = (-1.5 * H, 0.3 * H)    # seconds relative to reported_at
 # evidence, so the only route to the resource is the worker's own event. Each group below is one
 # kind of event, matched to requests independently (window = seconds relative to reported_at).
 EVENT_GROUPS = {
-    "account":   dict(system="account_service",   types={"DELETE_RECORD"},         window=ACCOUNT_WINDOW, claim=True),
+    # account deletions land 0.7-1.3 h before the claim is reported; a tighter second window covers the
+    # same-minute reporting seen in the oldest requests. The second window is used only if the first has no candidate.
+    "account":   dict(system="account_service",   types={"DELETE_RECORD"},         window=ACCOUNT_WINDOW, claim=True,
+                      windows=[(-1.3 * H, -0.7 * H), (-0.1 * H, 0.15 * H)]),
     "analytics": dict(system="analytics_platform", types={"ANONYMIZE_RECORD"},     window=(-0.6 * H, 0.05 * H), claim=False),
     "support":   dict(system="support_platform",   types={"REDACT_RECORD"},        window=(-0.6 * H, 0.05 * H), claim=False),
     "flow":      dict(system="integration_service", types={"DISABLE_DATA_FLOW"},   window=(-0.6 * H, 0.05 * H), claim=False),
@@ -105,12 +108,14 @@ def assign_events(cases: list[Case], resolver, owner: dict[str, set[str]],
         rep = _P(c.reported_at)
         allowed = CLAIM_RESULTS.get(c.reported_status, {"SUCCESS", "FAILED", "PARTIAL"}) if spec["claim"] else None
         cs: dict[str, tuple[float, dict]] = {}
-        for a in events:
-            d = (_P(a["event_time"]) - rep).total_seconds()
-            o = owner.get(a["resource_id"])
-            if spec["window"][0] <= d <= spec["window"][1] and (allowed is None or a["reported_result"] in allowed) \
-                    and (not o or u.user_id in o):
-                cs[a["resource_id"]] = (d, a)
+        for lo, hi in spec.get("windows", [spec["window"]]):
+            for a in events:
+                d = (_P(a["event_time"]) - rep).total_seconds()
+                o = owner.get(a["resource_id"])
+                if lo <= d <= hi and (allowed is None or a["reported_result"] in allowed) and (not o or u.user_id in o):
+                    cs[a["resource_id"]] = (d, a)
+            if cs:
+                break          # earlier windows take precedence
         cands[c.case_id] = cs
 
     assigned: dict[str, dict] = {}
