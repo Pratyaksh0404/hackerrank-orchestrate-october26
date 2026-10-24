@@ -113,3 +113,67 @@ branch=main
 repo_root=/home/claude/repo
 worktree=main
 parent_agent=none
+
+## [2026-10-24T15:34:00Z] Review of the finished project, task list, git commands
+
+User Prompt (verbatim, secrets redacted):
+is everything correct according to what could be done ?
+also give me the git commit, git add  , git push message.
+[git status output pasted]
+
+Agent Response Summary:
+Reviewed what was complete and what was unmeasured, marked the first four tasks in the task list done, and corrected .gitignore advice (__pycache__, *.pyc, output_*.csv). Changed the default model to gemini-3.1-flash-lite in llm.py and .env.example to match the final run, and gave git add/commit/push commands for the fork.
+
+Actions:
+* Edited code/ghostaudit/llm.py and code/.env.example (default model)
+* Updated the task list
+* No push was made from the agent environment
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5-5
+branch=main
+repo_root=/home/claude/repo
+worktree=main
+parent_agent=none
+
+## [2026-10-24T16:36:00Z] Completeness check and account-event window fix
+
+User Prompt (verbatim, secrets redacted):
+ok i have pushed and made the zip. is it complete ? is it according to what all was needed ? because we have time. it is a 24 hr hackathon and it just 4 hours passed till now, we have 20 hours. is the project complete ?
+
+Agent Response Summary:
+Checked the deliverables against AGENTS.md, then reviewed the full run for quality. 31 applicable cases had no account step, so the account-event matching now tries the tight window first (0.7 to 1.3 hours before reported_at), then the same-minute window; 11 more cases now get an account check (488 of 508). Sample scores did not change (100% status, 97.4% step F1). Listed what is still unmeasured or heuristic.
+
+Actions:
+* Edited code/ghostaudit/activity.py
+* Ran python code/main.py --samples --no-llm, python code/evaluation/evaluate.py, python code/main.py --no-llm, python code/evaluation/main.py
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5-5
+branch=main
+repo_root=/home/claude/repo
+worktree=main
+parent_agent=none
+
+## [2026-10-24T16:56:00Z] Interview Q&A
+
+User Prompt (verbatim, secrets redacted):
+ok done pushed all.
+lets start with the Q&A.
+
+Agent Response Summary:
+Wrote a practice interview Q&A covering architecture, identity resolution, time rules, retained records, the worker-event heuristic, measured accuracy, known gaps and how the model was used.
+
+Actions:
+* none (advice only)
+
+Context:
+tool=Claude Code
+model=claude-sonnet-5-5
+branch=main
+repo_root=/home/claude/repo
+worktree=main
+parent_agent=none
+
